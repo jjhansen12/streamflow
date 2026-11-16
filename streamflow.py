@@ -82,9 +82,6 @@ def summarize(dates, flows, sites):
     summary_df = pd.DataFrame(summary_data)
     summary_df.to_csv('streamflow_summary.csv', index=False)
 
-if __name__ == "__main__":
-    summarize(dates, flows, sites)
-
 #RESULTS FROM EXCEL VERIFICATION
 #Gauge number, Max (cfs), Date of max, Min (cfs), Avg (cfs)
 #10163000, 131.0, 2021-06-01 08:15:00, 35.6, 56.95236111111111
@@ -92,3 +89,37 @@ if __name__ == "__main__":
 #10155500, 259.0, 2021-06-24 20:15:00, 182.0, 213.34548611111111
 #10154200, 406.0, 2021-06-02 05:15:00, 50.4, 139.61864583333335
 #10155000, 754.0, 2021-06-03 05:45:00, 23.2, 187.79267361111113
+
+# --- Step 6: Threshold Report Function ---
+def report_threshold(flows, sites):
+    """
+    Asks the user for a flow threshold and calculates 
+    how many hours each gauge stayed above that threshold.
+    """
+    # 1. Ask the user for a flow threshold using input()
+    # We convert it to float so we can compare it against numerical streamflow values
+    user_input = input("Enter a flow threshold in cfs: ")
+    threshold = float(user_input)
+    
+    print(f"\nHours above threshold {threshold} cfs:")
+    print(f"{'Gauge':<12} {'Hours Above':<10}")
+    
+    # 2. For each gauge, report how many hours the flow was above that threshold
+    for i, site in enumerate(sites):
+        site_flows = flows[:, i]
+        
+        # Each reading is 15 minutes (0.25 hours). 
+        # np.sum counts the True values where flow > threshold.
+        hours = np.sum(site_flows > threshold) * 0.25
+        
+        print(f"{str(site):<12} {hours:<10.2f}")
+
+# --- Main Execution Block ---
+if __name__ == "__main__":
+    # Step 5 call
+    summarize(dates, flows, sites)
+    
+    print("\n" + "="*40 + "\n")
+    
+    # Step 6 call
+    report_threshold(flows, sites)
