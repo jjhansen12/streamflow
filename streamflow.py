@@ -43,3 +43,52 @@ def plot_streamflow(dates, flows, sites):
 sites = ["10163000", "10155200", "10155500", "10154200", "10155000"]
 dates, flows = load_streamflow("June-2021-Provo-River-Streamflow-Rates.csv")
 plot_streamflow(dates, flows, sites)
+
+import pandas as pd
+def summarize(dates, flows, sites):
+    """
+    Excel verification for gauge 10163000:
+    - Max Flow: 131.0 cfs
+    - Average Flow: 56.95 cfs (57.0 cfs rounded)
+    """
+    summary_data = []
+    
+    # Print table header
+    print(f"{'Gauge':<12} {'Max (cfs)':<12} {'Date of max':<22} {'Min (cfs)':<12} {'Avg (cfs)':<10}")
+    
+    for i, site in enumerate(sites):
+        site_flows = flows[:, i]
+        
+        # Calculate statistics using numpy
+        max_val = np.max(site_flows)
+        max_idx = np.argmax(site_flows)
+        max_date = dates[max_idx]
+        min_val = np.min(site_flows)
+        avg_val = np.mean(site_flows)
+        
+        # Print formatted row to terminal
+        print(f"{str(site):<12} {max_val:<12.1f} {str(max_date):<22} {min_val:<12.1f} {avg_val:<10.1f}")
+        
+        # Collect data for DataFrame / CSV export
+        summary_data.append({
+            'Gauge': site,
+            'Max (cfs)': max_val,
+            'Date of max': max_date,
+            'Min (cfs)': min_val,
+            'Avg (cfs)': avg_val
+        })
+        
+    # Save summary to CSV file
+    summary_df = pd.DataFrame(summary_data)
+    summary_df.to_csv('streamflow_summary.csv', index=False)
+
+if __name__ == "__main__":
+    summarize(dates, flows, sites)
+
+#RESULTS FROM EXCEL VERIFICATION
+#Gauge number, Max (cfs), Date of max, Min (cfs), Avg (cfs)
+#10163000, 131.0, 2021-06-01 08:15:00, 35.6, 56.95236111111111
+#10155200, 215.0, 2021-06-27 17:00:00, 125.0, 166.4142361111111
+#10155500, 259.0, 2021-06-24 20:15:00, 182.0, 213.34548611111111
+#10154200, 406.0, 2021-06-02 05:15:00, 50.4, 139.61864583333335
+#10155000, 754.0, 2021-06-03 05:45:00, 23.2, 187.79267361111113
